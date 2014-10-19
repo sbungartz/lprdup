@@ -42,15 +42,15 @@ You can pass any arguments for `lpr` to the script.
 
 ## Printer configuration
 
-Since the correct order of subsets depends on the printer, this can be configured in the `~/.lprdup` file using a string of four characters for each printer.
+Since the correct order of subsets depends on the printer, this can be configured in the `~/.lprdupconfig` file using a string of four characters for each printer.
 For the configuration described above this string would be `oren`, indicating that first the *odd* pages are printed in *reverse* order and then the *even* pages are printed in *normal* order.
-For a printer named `my-printer` the following line in `~/.lprdup` would set this configuration:
+For a printer named `my-printer` the following line in `~/.lprdupconfig` would set this configuration:
 
 ```
 printer_config[my-printer]=oren
 ```
 
 When you use `lprdup` with a printer for which there is no configuration, you will be prompted to enter one.
-This configuration will automatically be appended to `~/.lprdup` so you will not have to re-enter it after the first time.
+This configuration will automatically be appended to `~/.lprdupconfig` so you will not have to re-enter it after the first time.
 
 If you explicitly select a printer using the `-P <printer name>` argument, the settings for this printer will be used.
