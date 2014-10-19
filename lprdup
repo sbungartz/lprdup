@@ -1,0 +1,68 @@
+#!/bin/bash
+set -e -u
+
+# load configuration
+: ${CONFIG_FILE:="$HOME/.lprdup"}
+declare -A printer_config
+[ -f $CONFIG_FILE ] && source $CONFIG_FILE
+
+# scan paramter list for -P <printer-name> variable
+printer_name_flag_found=false
+
+for i in "$@"
+do
+  if [[ "$i" == "-P" ]]
+  then
+    printer_name_flag_found=true
+  elif [ "$printer_name_flag_found" == true ]
+  then
+    printer_name="$i"
+    break
+  fi
+done
+
+# if the -P flag is not specified, the default printer will be used
+: ${printer_name:=$( LANG=en_US.UTF-8 LANGUAGE=en_US lpstat -d | cut -d' ' -f4 )}
+
+# if there is no config for this printer, promt the user
+if ! [ ${printer_config[$printer_name]+_} ]
+then
+  read -p "no config for printer ${printer_name}. Enter config or hit enter to use default of 'oren': " new_config
+  : ${new_config:='oren'}
+  printer_config[$printer_name]=${new_config}
+  echo "printer_config[$printer_name]=${new_config}" >> ${CONFIG_FILE}
+fi
+
+# parse the config string
+cfgstr=${printer_config[$printer_name]}
+
+declare -A pagesets=( ["e"]="even" ["o"]="odd" )
+pagesets_help="pageset must be either 'e' for 'even' or 'o' for 'odd'"
+declare -A orders=( ["n"]="normal" ["r"]="reverse" )
+orders_help="order must be either 'n' for 'normal' or 'r' for 'reverse'"
+
+if [ ${#cfgstr} != 4 ]
+then
+  echo 'ERROR: config must have exactly 4 characters'
+  exit 1
+fi
+
+PAGESET_FIRST=${pagesets[${cfgstr:0:1}]:?"First $pagesets_help"}
+ORDER_FIRST=${orders[${cfgstr:1:1}]:?"First $oders_help"}
+PAGESET_SECOND=${pagesets[${cfgstr:2:1}]:?"Second $pagesets_help"}
+ORDER_SECOND=${orders[${cfgstr:3:1}]:?"Second $orders_help"}
+
+# print the document using lpr
+echo printing $PAGESET_FIRST pages in $ORDER_FIRST order
+lpr -o outputorder=$ORDER_FIRST -o page-set=$PAGESET_FIRST "$@"
+
+echo 'when the print job is done:'
+echo '    1. Take the printed stack of paper (WITHOUT CHANGING ITS ORDER)'
+echo '    2. Put it in the fresh paper tray. Make sure you use the correct way for your printer.'
+echo '    3. Hit enter to print the back sides.'
+
+read
+
+echo printing $PAGESET_SECOND pages in $ORDER_SECOND order
+lpr -o outputorder=$ORDER_SECOND -o page-set=$PAGESET_SECOND "$@"
+
