@@ -2,7 +2,7 @@
 set -e -u
 
 # load configuration
-: ${CONFIG_FILE:="$HOME/.lprdup"}
+: ${CONFIG_FILE:="$HOME/.lprdupconfig"}
 declare -A printer_config
 [ -f $CONFIG_FILE ] && source $CONFIG_FILE
 
